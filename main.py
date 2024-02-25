@@ -12,15 +12,11 @@ app = FastAPI()
 model = joblib.load("./arima_model.joblib")
 
 
-class PredictionInput(BaseModel):
-    value: float
-
-
 @app.get("/predict")
-def predict(input_data: PredictionInput):
+def predict():
     try:
         # Make prediction using the loaded ARIMA model
         prediction = model.forecast(steps=4)  # Adjust as needed
-        return {"prediction": prediction[0]}
+        return {"prediction": prediction.iloc[0]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
