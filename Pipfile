@@ -14,3 +14,9 @@ numpy = "*"
 
 [requires]
 python_version = "3.12"
+
+[demo]
+streamlit = "*"
+
+[notebook]
+jupyterlab = "*"
