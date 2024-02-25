@@ -1,0 +1,17 @@
+{
+  "group": {
+    "default": {
+      "targets": [
+        "milkmarketmaster"
+      ]
+    }
+  },
+  "target": {
+    "milkmarketmaster": {
+      "dockerfile": "Dockerfile",
+      "tags": [
+        "ghcr.io/elahe-dastan/milkmarketmaster"
+      ]
+    }
+  }
+}
