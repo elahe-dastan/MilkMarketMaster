@@ -9,6 +9,7 @@ pydantic = "*"
 statsmodels = "*"
 joblib = "*"
 numpy = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 
