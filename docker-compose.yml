@@ -1,9 +1,7 @@
-# docker-compose.yml
-
-version: "3.8"
+version: "3.11"
 
 services:
-  fastapi-app:
+  m3:
     build: .
     ports:
-      - "8000:80"
+      - "8080:8080"

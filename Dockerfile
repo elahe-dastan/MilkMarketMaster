@@ -16,4 +16,4 @@ ENV ENVIRONMENT production
 
 WORKDIR /app/
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "1378", "--workers", "5", "--backlog", "1024"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "5", "--backlog", "1024"]
