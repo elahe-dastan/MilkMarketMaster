@@ -16,7 +16,7 @@ class PredictionInput(BaseModel):
     value: float
 
 
-@app.post("/predict")
+@app.get("/predict")
 def predict(input_data: PredictionInput):
     try:
         # Make prediction using the loaded ARIMA model
