@@ -66,16 +66,15 @@ def predict(
     ],
     steps: Annotated[
         int,
-        Query(title="Steps", description="Number of predicted steps", gt=0, default=16),
-    ],
+        Query(title="Steps", description="Number of predicted steps", gt=0),
+    ] = 16,
     df: Annotated[
         bool,
         Query(
             title="Dataframe",
             description="Return the whole predicted dataframe",
-            default=False,
         ),
-    ],
+    ] = False,
 ):
     try:
         logger.info("hi")
