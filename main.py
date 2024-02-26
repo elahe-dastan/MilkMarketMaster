@@ -1,5 +1,3 @@
-# main.py
-
 import datetime
 import logging
 from typing import Annotated
@@ -66,24 +64,39 @@ def predict(
     product_id: Annotated[
         int, Query(title="Product ID", description="ID of the product", gt=0)
     ],
+    steps: Annotated[
+        int,
+        Query(title="Steps", description="Number of predicted steps", gt=0, default=16),
+    ],
+    df: Annotated[
+        bool,
+        Query(
+            title="Dataframe",
+            description="Return the whole predicted dataframe",
+            default=False,
+        ),
+    ],
 ):
     try:
         logger.info("hi")
         # Make prediction using the loaded ARIMA model
         # steps = 16 means 4 months
         model = load_model(country_id, product_id)
-        forecasts = model.forecast(steps=16)  # Adjust as needed
+        forecasts = model.forecast(steps=steps)
         last_date = pd.to_datetime("2023-12-21")
         logger.info("hi")
         forecast_df = pd.DataFrame(
             {
                 "forecast_date": pd.date_range(
-                    start=last_date + pd.DateOffset(1), periods=16, freq="W-THU"
+                    start=last_date + pd.DateOffset(1), periods=steps, freq="W-THU"
                 ),
                 "forecast_price": forecasts,
             }
         )
         # forecast_df.set_index('forecast_date', inplace=True)
+
+        if df:
+            return forecast_df.to_json()
 
         return maximize_profit(forecast_df)
     except Exception as e:
