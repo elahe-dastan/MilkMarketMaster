@@ -1,14 +1,20 @@
 # main.py
 
 import joblib
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 import pandas as pd
 import logging
 
 app = FastAPI()
 
-# Load the ARIMA model
-model = joblib.load("./arima_model.joblib")
+
+def load_model(country_id, product_id):
+    path = f"./data/{country_id}/{product_id}/smp_quotations_arima_model.joblib"
+    # Load the ARIMA model
+    # HANDLE EXCEPTION **********************
+    model = joblib.load(path)
+
+    return model
 
 
 def maximize_profit(forecast_df):
@@ -27,12 +33,14 @@ def maximize_profit(forecast_df):
 
 
 @app.get("/predict")
-def predict():
+def predict(country_id: int = Query(..., title="Country ID", description="ID of the country"),
+            product_id: int = Query(..., title="Product ID", description="ID of the product")):
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     try:
         logging.log(1, 'hi')
         # Make prediction using the loaded ARIMA model
         # steps = 16 means 4 months
+        model = load_model(country_id, product_id)
         forecasts = model.forecast(steps=16)  # Adjust as needed
         last_date = pd.to_datetime('2023-12-21')
         logging.log(1, 'hi')
@@ -41,7 +49,6 @@ def predict():
             'forecast_price': forecasts
         })
         # forecast_df.set_index('forecast_date', inplace=True)
-
 
         max_profit = maximize_profit(forecast_df)
         # return {"prediction": prediction.iloc[0]}
