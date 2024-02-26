@@ -18,6 +18,7 @@ python_version = "3.12"
 
 [demo]
 streamlit = "*"
+requests = "*"
 
 [notebook]
 jupyterlab = "*"
