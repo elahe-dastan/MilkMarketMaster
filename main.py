@@ -44,10 +44,10 @@ def maximize_profit(forecast_df):
 @app.get("/predict")
 def predict(
     country_id: Annotated[
-        int, Query(title="Country ID", description="ID of the country")
+        int, Query(title="Country ID", description="ID of the country", gt=0)
     ],
     product_id: Annotated[
-        int, Query(title="Product ID", description="ID of the product")
+        int, Query(title="Product ID", description="ID of the product", gt=0)
     ],
 ):
     try:
