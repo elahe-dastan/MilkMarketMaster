@@ -6,4 +6,4 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./arima_model.joblib:/app/arima_model.joblib
+      - ./smp_quotations_arima_model.joblib:/app/arima_model.joblib
