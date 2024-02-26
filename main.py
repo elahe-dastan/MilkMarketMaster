@@ -51,13 +51,13 @@ def predict(
     ],
 ):
     try:
-        logger.info(1, "hi")
+        logger.info("hi")
         # Make prediction using the loaded ARIMA model
         # steps = 16 means 4 months
         model = load_model(country_id, product_id)
         forecasts = model.forecast(steps=16)  # Adjust as needed
         last_date = pd.to_datetime("2023-12-21")
-        logger.info(1, "hi")
+        logger.info("hi")
         forecast_df = pd.DataFrame(
             {
                 "forecast_date": pd.date_range(
