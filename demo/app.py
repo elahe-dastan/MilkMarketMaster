@@ -20,7 +20,7 @@ def main():
     if st.button("Predict"):
         response = make_prediction(value)
         df: pd.DataFrame = pd.DataFrame.from_dict(response)
-        df = df.set_index(df["forecast_date"])
+        df = df.set_index(pd.to_datetime(df["forecast_date"]).dt.date)
         st.line_chart(df["forecast_price"])
 
 
