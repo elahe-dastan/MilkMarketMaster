@@ -85,8 +85,7 @@ def predict(
         )
         # forecast_df.set_index('forecast_date', inplace=True)
 
-        max_profit = maximize_profit(forecast_df)
-        return {"max_profit: ": max_profit}
+        return maximize_profit(forecast_df)
     except Exception as e:
         logger.exception("something bad happend")
         raise HTTPException(status_code=500, detail=str(e))
