@@ -95,7 +95,7 @@ def predict(
         # forecast_df.set_index('forecast_date', inplace=True)
 
         if df:
-            return forecast_df.to_json()
+            return forecast_df.to_dict()
 
         return maximize_profit(forecast_df)
     except Exception as e:
