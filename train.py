@@ -1,11 +1,7 @@
 from statsmodels.tsa.arima.model import ARIMA
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
-import numpy as np
 import pandas as pd
-from pmdarima import auto_arima
 import joblib
-
 
 
 def read():
@@ -15,7 +11,6 @@ def read():
 
     smp_2_4['date'] = pd.to_datetime(smp_2_4['date'])
     smp_2_4.set_index('date', inplace=True)
-
 
     return smp_2_4
 
@@ -37,14 +32,17 @@ def train_model(train_dataset, p, d, q):
 
 def evaluate_model(fitted_model, test_dataset):
     predictions = fitted_model.predict(start=len(train), end=len(train) + len(test) - 1)
+    forecasts = fitted_model.forecast(len(test))
     mse = mean_squared_error(test_dataset['price'], predictions)
+    forecasts_mse = mean_squared_error(test_dataset['price'], forecasts)
     print(f'Mean Squared Error: {mse}')
+    print(f'Forecast Mean Squared Error: {forecasts_mse}')
 
 
 data = read()
 train, test = split(data)
 
-model = train_model(train, 3, 1, 3)
+model = train_model(train, 12, 2, 1)
 evaluate_model(model, test)
 
 # Save the fitted model to a file using joblib

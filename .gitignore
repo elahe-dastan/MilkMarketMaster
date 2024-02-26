@@ -1,3 +1,6 @@
 .idea/
 arima_model.joblib
 data/
+__pycache__/
+*.jpg
+*.png
