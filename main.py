@@ -1,10 +1,12 @@
 # main.py
 
+import datetime
 import logging
 from typing import Annotated
 
 import joblib
 import pandas as pd
+import pydantic
 from fastapi import FastAPI, HTTPException, Query
 
 app = FastAPI()
@@ -12,6 +14,12 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("main")
+
+
+class Response(pydantic.BaseModel):
+    buy_at: datetime.date
+    max_profit: float
+    sell_at: datetime.date
 
 
 def load_model(country_id, product_id):
@@ -36,9 +44,18 @@ def maximize_profit(forecast_df):
         - forecast_df["forecast_price"][min_index_before_max]
     )
 
+    response = Response(
+        buy_at=forecast_df["forecast_date"][min_index_before_max].date(),
+        sell_at=forecast_df["forecast_date"][max_index].date(),
+        max_profit=max_profit,
+    )
+
     # Print the result
-    # print(f"Buy at index {min_index_before_max}, sell at index {max_index}, max profit: {max_profit}")
-    return f"Buy at index {forecast_df['forecast_date'][min_index_before_max]}, sell at index {forecast_df['forecast_date'][max_index]}, max profit: {max_profit}"
+    logger.info(
+        f"Buy at index {response.buy_at}, sell at index {response.sell_at}, max profit: {response.max_profit}"
+    )
+
+    return response
 
 
 @app.get("/predict")
@@ -69,7 +86,6 @@ def predict(
         # forecast_df.set_index('forecast_date', inplace=True)
 
         max_profit = maximize_profit(forecast_df)
-        # return {"prediction": prediction.iloc[0]}
         return {"max_profit: ": max_profit}
     except Exception as e:
         logger.exception("something bad happend")
