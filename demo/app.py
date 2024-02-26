@@ -1,27 +1,41 @@
 # streamlit_app/app.py
 
-import streamlit as st
+import pandas as pd
 import requests
+import streamlit as st
 
-# Define the FastAPI API endpoint
-api_endpoint = "http://fastapi-app:80/predict"  # Use the Docker service name
+endpoint = "http://127.0.0.1:8080/predict"
 
 
 def main():
-    st.title("Streamlit App")
+    st.title("Milk Market Master 🥛")
 
-    # Interactive input form
-    value = st.number_input("Enter a country id:", value=2, step=0.1)
+    try:
+        value = int(st.number_input("Number of steps", value=16, step=1))
+    except ValueError:
+        st.error("steps should be a number")
+        st.stop()
 
     # Make a request to the FastAPI API
     if st.button("Predict"):
         response = make_prediction(value)
-        st.success(f"Prediction: {response['prediction']}")
+        df: pd.DataFrame = pd.DataFrame.from_dict(response)
+        df = df.set_index(df["forecast_date"])
+        st.line_chart(df["forecast_price"])
 
 
-def make_prediction(value):
-    # payload = {"value": value}
-    response = requests.get(api_endpoint)
+def make_prediction(steps: int):
+    response = requests.get(
+        endpoint,
+        params={
+            "product_id": 1,
+            "country_id": 1,
+            "steps": steps,
+            "df": True,
+        },
+    )
+    response.raise_for_status()
+
     return response.json()
 
 
