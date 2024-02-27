@@ -20,8 +20,8 @@ class Response(pydantic.BaseModel):
     sell_at: datetime.date
 
 
-def load_model(country_id, product_id):
-    path = f"./data/{country_id}/{product_id}/smp_quotations_arima_model.joblib"
+def load_model(country_id, product_id, name):
+    path = f"./data/{country_id}/{product_id}/{name}.joblib"
     # Load the ARIMA model
     # HANDLE EXCEPTION **********************
     model = joblib.load(path)
@@ -29,39 +29,46 @@ def load_model(country_id, product_id):
     return model
 
 
-def load_inflation(country_id):
+def load_inflation(country_id) -> pd.DataFrame:
     path = f"./data/{country_id}/inflation_rates.csv"
     # Load the inflation csv
     # HANDLE EXCEPTION **********************
-    inflation = pd.read_csv(path)
+    inflation: pd.DataFrame = pd.read_csv(path)
     # FOR NOW --> Quarterly
-    inflation = inflation[inflation['data_interval'] == 'yearly']
-    inflation = inflation.sort_values(by='date')
-    inflation = inflation[['date', 'rate']]
+    yearly_inflation = inflation[inflation["data_interval"] == "yearly"]
+    assert isinstance(yearly_inflation, pd.DataFrame)
+    inflation = yearly_inflation
+    inflation = inflation.sort_values(by="date")
 
-    inflation['date'] = pd.to_datetime(inflation['date'])
-    inflation.set_index('date', inplace=True)
+    inflation["date"] = pd.to_datetime(inflation["date"])
+    inflation.set_index("date", inplace=True)
 
-    return inflation
+    selected_inflation = inflation[["date", "rate"]]
+    assert isinstance(selected_inflation, pd.DataFrame)
+
+    return selected_inflation
+
 
 def merge_forecast_inflation(forecast_df, inflation):
     # Extract the year from the date index in df_weekly
-    forecast_df['year'] = forecast_df.index.year
+    forecast_df["year"] = forecast_df.index.year
 
-    inflation['year'] = inflation.index.year
+    inflation["year"] = inflation.index.year
 
     # Merge based on the condition: year in df_weekly should match the 'date' column in df_yearly
-    forecast_inflation_merged = pd.merge(forecast_df, inflation, left_on='year', right_on='year', how='inner')
+    forecast_inflation_merged = pd.merge(
+        forecast_df, inflation, left_on="year", right_on="year", how="inner"
+    )
 
     return forecast_inflation_merged
 
 
 def maximize_profit(forecast_df):
     # Find the index of the maximum value
-    max_index = forecast_df['adjusted_price'].idxmax()
+    max_index = forecast_df["adjusted_price"].idxmax()
 
     # Find the index of the minimum value before the maximum value
-    min_index_before_max = forecast_df['adjusted_price'].loc[:max_index].idxmin()
+    min_index_before_max = forecast_df["adjusted_price"].loc[:max_index].idxmin()
 
     # Calculate the maximum profit
     max_profit = (
@@ -102,37 +109,67 @@ def predict(
             description="Return the whole predicted dataframe",
         ),
     ] = False,
+    param: Annotated[
+        str,
+        Query(
+            title="Parameter",
+            description="The parameter that is going to predict",
+        ),
+    ] = "price",
 ):
     try:
-        # Make prediction using the loaded ARIMA model
-        # steps = 16 means 4 months
-        model = load_model(country_id, product_id)
-        forecasts = model.forecast(steps=steps)
-        last_date = pd.to_datetime("2023-12-21")
+        match param:
+            case "production":
+                model = load_model(country_id, product_id, "production_arima_model")
+                forecasts = model.forecast(steps=steps)
 
-        forecast_df = pd.DataFrame(
-            {
-                "forecast_date": pd.date_range(
-                    start=last_date + pd.DateOffset(1), periods=steps, freq="W-THU"
-                ),
-                "forecast_index": pd.date_range(
-                    start=last_date + pd.DateOffset(1), periods=steps, freq="W-THU"
-                ),
-                "forecast_price": forecasts,
-            }
-        )
-        forecast_df.set_index('forecast_index', inplace=True)
+                if df:
+                    return forecasts.to_dict()
 
-        inflation = load_inflation(country_id)
-        forecast_inflation_merged = merge_forecast_inflation(forecast_df, inflation)
+                return {}
 
-        forecast_inflation_merged['adjusted_price'] = forecast_inflation_merged['forecast_price'] + (forecast_inflation_merged['forecast_price'] * forecast_inflation_merged['rate'] / 100)
+            case "price":
+                # Make prediction using the loaded ARIMA model
+                # steps = 16 means 4 months
+                model = load_model(country_id, product_id, "smp_quotations_arima_model")
+                forecasts = model.forecast(steps=steps)
+                last_date = pd.to_datetime("2023-12-21")
 
-        if df:
-            return forecast_inflation_merged.to_dict()
+                forecast_df = pd.DataFrame(
+                    {
+                        "forecast_date": pd.date_range(
+                            start=last_date + pd.DateOffset(1),
+                            periods=steps,
+                            freq="W-THU",
+                        ),
+                        "forecast_index": pd.date_range(
+                            start=last_date + pd.DateOffset(1),
+                            periods=steps,
+                            freq="W-THU",
+                        ),
+                        "forecast_price": forecasts,
+                    }
+                )
+                forecast_df.set_index("forecast_index", inplace=True)
 
-        # return maximize_profit(forecast_inflation_merged[1:])
-        return maximize_profit(forecast_inflation_merged)
+                inflation = load_inflation(country_id)
+                forecast_inflation_merged = merge_forecast_inflation(
+                    forecast_df, inflation
+                )
+
+                forecast_inflation_merged["adjusted_price"] = forecast_inflation_merged[
+                    "forecast_price"
+                ] + (
+                    forecast_inflation_merged["forecast_price"]
+                    * forecast_inflation_merged["rate"]
+                    / 100
+                )
+
+                if df:
+                    return forecast_inflation_merged.to_dict()
+
+                # return maximize_profit(forecast_inflation_merged[1:])
+                return maximize_profit(forecast_inflation_merged)
 
     except Exception as e:
         logger.exception("something bad happend")

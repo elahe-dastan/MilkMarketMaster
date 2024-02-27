@@ -10,9 +10,7 @@ RUN pip install --no-cache-dir pipenv && \
 
 COPY . /app
 
-EXPOSE 1378
-
-ENV ENVIRONMENT production
+EXPOSE 8080
 
 WORKDIR /app/
 
