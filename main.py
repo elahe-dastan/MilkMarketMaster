@@ -1,11 +1,23 @@
-# main.py
+import datetime
+import logging
+from typing import Annotated
 
 import joblib
-from fastapi import FastAPI, HTTPException, Query
 import pandas as pd
-import logging
+import pydantic
+from fastapi import FastAPI, HTTPException, Query
 
 app = FastAPI()
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("main")
+
+
+class Response(pydantic.BaseModel):
+    buy_at: datetime.date
+    max_profit: float
+    sell_at: datetime.date
 
 
 def load_model(country_id, product_id):
@@ -52,44 +64,75 @@ def maximize_profit(forecast_df):
     min_index_before_max = forecast_df['adjusted_price'].loc[:max_index].idxmin()
 
     # Calculate the maximum profit
-    max_profit = forecast_df['adjusted_price'][max_index] - forecast_df['adjusted_price'][min_index_before_max]
+    max_profit = (
+        forecast_df["adjusted_price"][max_index]
+        - forecast_df["adjusted_price"][min_index_before_max]
+    )
+
+    response = Response(
+        buy_at=forecast_df["forecast_date"][min_index_before_max].date(),
+        sell_at=forecast_df["forecast_date"][max_index].date(),
+        max_profit=max_profit,
+    )
 
     # Print the result
-    # print(f"Buy at index {min_index_before_max}, sell at index {max_index}, max profit: {max_profit}")
-    return f"Buy at index {forecast_df['forecast_date'][min_index_before_max]}, sell at index {forecast_df['forecast_date'][max_index]}, max profit: {max_profit}"
+    logger.info(
+        f"Buy at index {response.buy_at}, sell at index {response.sell_at}, max profit: {response.max_profit}"
+    )
+
+    return response
 
 
 @app.get("/predict")
-def predict(country_id: int = Query(..., title="Country ID", description="ID of the country"),
-            product_id: int = Query(..., title="Product ID", description="ID of the product")):
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+def predict(
+    country_id: Annotated[
+        int, Query(title="Country ID", description="ID of the country", gt=0)
+    ],
+    product_id: Annotated[
+        int, Query(title="Product ID", description="ID of the product", gt=0)
+    ],
+    steps: Annotated[
+        int,
+        Query(title="Steps", description="Number of predicted steps", gt=0),
+    ] = 16,
+    df: Annotated[
+        bool,
+        Query(
+            title="Dataframe",
+            description="Return the whole predicted dataframe",
+        ),
+    ] = False,
+):
     try:
-        logging.log(1, 'hi')
         # Make prediction using the loaded ARIMA model
         # steps = 16 means 4 months
         model = load_model(country_id, product_id)
-        forecasts = model.forecast(steps=16)  # Adjust as needed
+        forecasts = model.forecast(steps=steps)
+        last_date = pd.to_datetime("2023-12-21")
 
-        last_date = pd.to_datetime('2023-12-21')
-
-        forecast_df = pd.DataFrame({
-            'forecast_date': pd.date_range(start=last_date + pd.DateOffset(1), periods=16, freq='W-THU'),
-            'forecast_index': pd.date_range(start=last_date + pd.DateOffset(1), periods=16, freq='W-THU'),
-            'forecast_price': forecasts
-        })
+        forecast_df = pd.DataFrame(
+            {
+                "forecast_date": pd.date_range(
+                    start=last_date + pd.DateOffset(1), periods=steps, freq="W-THU"
+                ),
+                "forecast_index": pd.date_range(
+                    start=last_date + pd.DateOffset(1), periods=steps, freq="W-THU"
+                ),
+                "forecast_price": forecasts,
+            }
+        )
         forecast_df.set_index('forecast_index', inplace=True)
-
 
         inflation = load_inflation(country_id)
         forecast_inflation_merged = merge_forecast_inflation(forecast_df, inflation)
 
         forecast_inflation_merged['adjusted_price'] = forecast_inflation_merged['forecast_price'] + (forecast_inflation_merged['forecast_price'] * forecast_inflation_merged['rate'] / 100)
 
-        max_profit = maximize_profit(forecast_inflation_merged)
-        # return {"prediction": prediction.iloc[0]}
-        return {"max_profit: ": max_profit}
+        if df:
+            return forecast_inflation_merged.to_dict()
+
+        return maximize_profit(forecast_inflation_merged)
+
     except Exception as e:
-        logging.info('a')
-        logging.info(e)
-        logging.info('b')
+        logger.exception("something bad happend")
         raise HTTPException(status_code=500, detail=str(e))
