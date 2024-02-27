@@ -29,7 +29,7 @@ For the Demoing purpose we hare [streamlit](https://streamlit.io/), for using th
 ```bash
 pipenv install --categories demo
 pipenv shell
-streamlit demo/app.py
+streamlit run demo/app.py
 ```
 
-Pleaes, note that for using the demo, you need to run the application on port 8080.
+Please, note that for using the demo, you need to run the application on port 8080.
