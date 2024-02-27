@@ -31,3 +31,5 @@ pipenv install --categories demo
 pipenv shell
 streamlit demo/app.py
 ```
+
+Pleaes, note that for using the demo, you need to run the application on port 8080.
