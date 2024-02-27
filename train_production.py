@@ -42,7 +42,7 @@ def evaluate_model(fitted_model, test_dataset):
 data = read()
 train, test = split(data)
 
-model = train_model(train, 16, 0, 2)
+model = train_model(train, 16, 0, 5)
 evaluate_model(model, test)
 
 # Save the fitted model to a file using joblib
