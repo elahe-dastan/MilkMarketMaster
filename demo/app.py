@@ -16,15 +16,26 @@ def main():
         st.error("steps should be a number")
         st.stop()
 
+    param = st.selectbox("Parameter", options=["price", "production"])
+    if param is None:
+        st.error("parameter must be selected")
+        st.stop()
+
     # Make a request to the FastAPI API
     if st.button("Predict"):
-        response = make_prediction(value)
-        df: pd.DataFrame = pd.DataFrame.from_dict(response)
-        df = df.set_index(pd.to_datetime(df["forecast_date"]).dt.date)
-        st.line_chart(df["adjusted_price"])
+        response = make_prediction(value, param)
+        match param:
+            case "price":
+                df: pd.DataFrame = pd.DataFrame.from_dict(response)
+                df = df.set_index(pd.to_datetime(df["forecast_date"]).dt.date)
+                st.line_chart(df["adjusted_price"])
+            case "production":
+                df: pd.DataFrame = pd.DataFrame.from_dict(response)
+                df = df.set_index(pd.to_datetime(df["date"]).dt.date)
+                st.line_chart(df["value"])
 
 
-def make_prediction(steps: int):
+def make_prediction(steps: int, param: str):
     response = requests.get(
         endpoint,
         params={
@@ -32,6 +43,7 @@ def make_prediction(steps: int):
             "country_id": 2,
             "steps": steps,
             "df": True,
+            "param": param,
         },
     )
     response.raise_for_status()
