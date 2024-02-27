@@ -28,8 +28,8 @@ def make_prediction(steps: int):
     response = requests.get(
         endpoint,
         params={
-            "product_id": 1,
-            "country_id": 1,
+            "product_id": 4,
+            "country_id": 2,
             "steps": steps,
             "df": True,
         },
