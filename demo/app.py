@@ -21,7 +21,7 @@ def main():
         response = make_prediction(value)
         df: pd.DataFrame = pd.DataFrame.from_dict(response)
         df = df.set_index(pd.to_datetime(df["forecast_date"]).dt.date)
-        st.line_chart(df["forecast_price"])
+        st.line_chart(df["adjusted_price"])
 
 
 def make_prediction(steps: int):
