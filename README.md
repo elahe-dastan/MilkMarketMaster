@@ -13,3 +13,9 @@ There are 3 different categories for the required packages:
 - default: Main requirements
 - demo: Streamlit interactive demo requirements
 - notebook: Jupyter notebooks for working around the data
+
+```bash
+pipenv install
+pipenv install --categories demo
+pipenv install --categories notebook
+```
