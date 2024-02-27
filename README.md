@@ -21,3 +21,13 @@ pipenv install
 pipenv install --categories demo
 pipenv install --categories notebook
 ```
+
+## How to use the Demo?
+
+For the Demoing purpose we hare [streamlit](https://streamlit.io/), for using them you must:
+
+```bash
+pipenv install --categories demo
+pipenv shell
+streamlit demo/app.py
+```
