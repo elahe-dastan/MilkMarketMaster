@@ -131,6 +131,7 @@ def predict(
         if df:
             return forecast_inflation_merged.to_dict()
 
+        # return maximize_profit(forecast_inflation_merged[1:])
         return maximize_profit(forecast_inflation_merged)
 
     except Exception as e:
