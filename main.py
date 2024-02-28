@@ -3,6 +3,8 @@ import logging
 import click
 import uvicorn
 
+import training
+
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
@@ -26,9 +28,29 @@ def main(ctx, debug: bool):
     )
 
 
+@main.group()
+def train():
+    """
+    commands for running the model training.
+    there is a sub-command for each model.
+    """
+    pass
+
+
+@train.command()
+def smp():
+    """
+    train an ARIMA model for predicting smp price.
+    """
+    training.smp(2)
+
+
 @main.command()
 @click.pass_context
 def serve(ctx):
+    """
+    serve model(s) using fastapi.
+    """
     uvicorn.run(
         "server.server:app",
         host="0.0.0.0",
