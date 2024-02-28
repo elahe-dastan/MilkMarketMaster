@@ -1,9 +1,7 @@
-from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
 import pandas as pd
 import joblib
 from sklearn.ensemble import RandomForestRegressor
-
 
 
 def load_smp_model(country_id, product_id):
@@ -31,42 +29,36 @@ def read_smp():
 
     smp_2_4['date'] = pd.to_datetime(smp_2_4['date'])
 
-    # smp_2_4.set_index('date', inplace=True)
-    # smp_2_4['date'] = smp_2_4.index
-
     return smp_2_4
 
 
-# a = read()
+def prepare_data():
+    smp_model = load_smp_model(2, 4)
+    smp_predictions = pd.DataFrame(smp_model.predict(start=0, end=1620))
+    smp_predictions['date'] = smp_predictions.index
+    smp_predictions['year'] = smp_predictions.index.year
+    smp_predictions['month'] = smp_predictions.index.month
+    smp_predictions = smp_predictions.rename(columns={"predicted_mean": "estimated_price"})
 
-smp_model = load_smp_model(2, 4)
-production_model = load_production_model(2, 4)
+    production_model = load_production_model(2, 4)
+    production_predictions = pd.DataFrame(production_model.predict(start=0, end=1620))
+    production_predictions['year'] = production_predictions.index.year
+    production_predictions['month'] = production_predictions.index.month
+    production_predictions = production_predictions.rename(columns={"predicted_mean": "production_value"})
 
-smp_data = read_smp()
+    return smp_predictions, production_predictions
 
-smp_predictions = pd.DataFrame(smp_model.predict(start=0, end=1620))
-smp_predictions['date'] = smp_predictions.index
 
-merged_df = pd.merge(smp_predictions, smp_data, left_on=smp_predictions['date'], right_on=smp_data['date'], how='inner')
+def feature_engineering(smp_predictions, production_predictions):
+    smp_data = read_smp()
+    smp = pd.merge(smp_predictions, smp_data, left_on=smp_predictions['date'], right_on=smp_data['date'], how='inner')
+    smp.set_index('date_x', inplace=True)
 
-production_predictions = pd.DataFrame(production_model.predict(start=0, end=1620))
+    smp = smp[['estimated_price', 'price', 'year', 'month']]
 
-merged_df.set_index('date_x', inplace=True)
+    dataset = pd.merge(smp, production_predictions, left_on=['year', 'month'], right_on=['year', 'month'], how='inner')
 
-merged_df = merged_df[['predicted_mean', 'price']]
-
-merged_df['year'] = merged_df.index.year
-merged_df['month'] = merged_df.index.month
-
-production_predictions['year'] = production_predictions.index.year
-production_predictions['month'] = production_predictions.index.month
-
-merged_df_2 = pd.merge(merged_df, production_predictions, left_on=['year', 'month'], right_on=['year', 'month'],
-                     how='inner')
-
-merged_df_2 = merged_df_2.rename(columns={"predicted_mean_x": "estimated_price", "predicted_mean_y": "production_value"})
-
-print(merged_df_2)
+    return dataset
 
 def split(df):
     train_size = int(len(df) * 0.9)  # 80% for training, adjust as needed
@@ -75,7 +67,12 @@ def split(df):
     return train, test
 
 
-train, test = split(merged_df_2)
+def train_model(train):
+    regr = RandomForestRegressor(max_depth=4)
+    regr.fit(train[['estimated_price', 'production_value']], train['price'])
+
+    return regr
+
 
 def evaluate_model(fitted_model, test_dataset):
     predictions = fitted_model.predict(test_dataset[['estimated_price', 'production_value']])
@@ -85,9 +82,11 @@ def evaluate_model(fitted_model, test_dataset):
     print(f'Mean Squared Error: {mse}')
 
 
-regr = RandomForestRegressor(max_depth=4)
-regr.fit(train[['estimated_price', 'production_value']], train['price'])
+smp_predictions, production_predictions = prepare_data()
+dataset = feature_engineering(smp_predictions, production_predictions)
+train, test = split(dataset)
+model = train_model(train)
+evaluate_model(model, test)
 
-
-evaluate_model(regr, test)
-
+filename = "./data/2/4/rf_model.joblib"
+joblib.dump(model, filename)
