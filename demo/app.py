@@ -6,9 +6,37 @@ import streamlit as st
 
 endpoint = "http://127.0.0.1:8080/predict"
 
+COUNTRIES = {
+    2: "United States",
+    67: "Germany",
+    129: "Netherlands",
+    131: "New Zealand",
+    1: "Europe",
+}
+
+PRODUCTS = {4: "SMP (Food)", 1: "Milk"}
+
 
 def main():
     st.title("Milk Market Master 🥛")
+
+    country_id = st.selectbox(
+        "Country",
+        options=COUNTRIES.keys(),
+        format_func=lambda k: COUNTRIES.get(k),
+    )
+    if country_id is None:
+        st.error("country id must be selected")
+        st.stop()
+
+    product_id = st.selectbox(
+        "Product",
+        options=PRODUCTS.keys(),
+        format_func=lambda k: PRODUCTS.get(k),
+    )
+    if product_id is None:
+        st.error("product id must be selected")
+        st.stop()
 
     try:
         value = int(st.number_input("Number of steps", value=16, step=1))
@@ -23,7 +51,7 @@ def main():
 
     # Make a request to the FastAPI API
     if st.button("Predict"):
-        response = make_prediction(value, param)
+        response = make_prediction(value, param, product_id, country_id)
         match param:
             case "price":
                 df: pd.DataFrame = pd.DataFrame.from_dict(response)
@@ -35,12 +63,12 @@ def main():
                 st.line_chart(sr)
 
 
-def make_prediction(steps: int, param: str):
+def make_prediction(steps: int, param: str, product_id: int, country_id: int):
     response = requests.get(
         endpoint,
         params={
-            "product_id": 4,
-            "country_id": 2,
+            "product_id": product_id,
+            "country_id": country_id,
             "steps": steps,
             "df": True,
             "param": param,
