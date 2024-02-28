@@ -11,6 +11,7 @@ joblib = "*"
 numpy = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 scikit-learn = "*"
+click = "*"
 
 [dev-packages]
 
