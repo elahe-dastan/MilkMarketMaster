@@ -55,7 +55,7 @@ def main():
         match param:
             case "price":
                 df: pd.DataFrame = pd.DataFrame.from_dict(response)
-                df = df.set_index(pd.to_datetime(df["forecast_date"]).dt.date)
+                df.index = pd.to_datetime(df.index)
                 st.line_chart(df["adjusted_price"])
             case "production":
                 sr: pd.Series = pd.Series(response)
