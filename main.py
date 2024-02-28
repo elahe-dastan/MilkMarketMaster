@@ -34,7 +34,8 @@ def serve(ctx):
         host="0.0.0.0",
         port=8080,
         reload=True if ctx.obj["DEBUG"] else False,
-        workers=1,
+        workers=5,
+        backlog=1024,
     )
 
 
