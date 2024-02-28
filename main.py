@@ -140,50 +140,48 @@ def predict(
             right_on=["year", "month"],
             how="inner",
         )
-        logger.info(dataset)
+        logger.info("merge smp and productions forecasts %s", dataset.head())
 
         rf_model = load_model(country_id, product_id, "rf_model")
-        predictions = rf_model.predict(dataset[["estimated_price", "production_value"]])
+        rf_predictions = rf_model.predict(
+            dataset[["estimated_price", "production_value"]]
+        )
         logger.info(dataset.index)
-        forecast_df = pd.DataFrame(predictions, columns=["predicted_mean"]).set_index(
+        rf_based_forecast_df = pd.DataFrame(rf_predictions, columns=["predicted_mean"]).set_index(  # type: ignore
             smp_forecasts.index
         )
-        logger.info(forecast_df)
-        logger.info(forecast_df.columns)
+        logger.info(rf_based_forecast_df)
+        logger.info(rf_based_forecast_df.columns)
 
         inflation = load_inflation(country_id)
-        forecast_inflation_merged = merge_forecast_inflation(forecast_df, inflation)
-        forecast_inflation_merged.set_index("date", inplace=True)
+        rf_based_forecast_inflation_merged = merge_forecast_inflation(
+            rf_based_forecast_df, inflation
+        )
+        rf_based_forecast_inflation_merged.set_index("date", inplace=True)
 
-        forecast_inflation_merged["adjusted_price"] = forecast_inflation_merged[
-            "predicted_mean"
-        ] + (
-            forecast_inflation_merged["predicted_mean"]
-            * forecast_inflation_merged["rate"]
+        rf_based_forecast_inflation_merged[
+            "adjusted_price"
+        ] = rf_based_forecast_inflation_merged["predicted_mean"] + (
+            rf_based_forecast_inflation_merged["predicted_mean"]
+            * rf_based_forecast_inflation_merged["rate"]
             / 100
         )
 
-        logger.info(forecast_inflation_merged)
+        logger.info(
+            "adjusted rf based predction using inflation %s",
+            rf_based_forecast_inflation_merged.head(),
+        )
 
         match param:
             case "production":
-                model = load_model(country_id, product_id, "production_arima_model")
-                forecasts = model.forecast(steps=steps)
-
                 if df:
-                    return forecasts.to_dict()
+                    return production_forecasts.to_dict()
 
                 return {}
 
             case "price":
-                # Make prediction using the loaded ARIMA model
-                # steps = 16 means 4 months
-                model = load_model(country_id, product_id, "smp_quotations_arima_model")
-                forecasts = pd.DataFrame(model.forecast(steps=steps))
-
-                inflation = load_inflation(country_id)
                 forecast_inflation_merged = merge_forecast_inflation(
-                    forecasts, inflation
+                    smp_forecasts, inflation
                 )
                 forecast_inflation_merged.set_index("date", inplace=True)
 
@@ -193,6 +191,10 @@ def predict(
                     forecast_inflation_merged["predicted_mean"]
                     * forecast_inflation_merged["rate"]
                     / 100
+                )
+                # merge rf-based and non-rf prices into the response.
+                forecast_inflation_merged["rf_based_adjusted_price"] = (
+                    rf_based_forecast_inflation_merged["adjusted_price"]
                 )
 
                 if df:
