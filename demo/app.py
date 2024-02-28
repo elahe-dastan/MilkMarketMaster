@@ -30,9 +30,9 @@ def main():
                 df = df.set_index(pd.to_datetime(df["forecast_date"]).dt.date)
                 st.line_chart(df["adjusted_price"])
             case "production":
-                df: pd.DataFrame = pd.DataFrame.from_dict(response)
-                df = df.set_index(pd.to_datetime(df["date"]).dt.date)
-                st.line_chart(df["value"])
+                sr: pd.Series = pd.Series(response)
+                sr.index = pd.to_datetime(sr.index)
+                st.line_chart(sr)
 
 
 def make_prediction(steps: int, param: str):
