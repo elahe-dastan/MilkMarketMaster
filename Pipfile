@@ -10,6 +10,7 @@ statsmodels = "*"
 joblib = "*"
 numpy = "*"
 uvicorn = {extras = ["standard"], version = "*"}
+scikit-learn = "*"
 
 [dev-packages]
 
