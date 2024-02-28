@@ -20,7 +20,7 @@ class Response(pydantic.BaseModel):
     sell_at: datetime.date
 
 
-async def load_model(country_id, product_id, name):
+def load_model(country_id, product_id, name):
     path = f"./data/{country_id}/{product_id}/{name}.joblib"
 
     try:
