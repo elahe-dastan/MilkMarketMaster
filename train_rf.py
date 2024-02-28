@@ -23,7 +23,7 @@ def load_production_model(country_id, product_id):
 
 
 def read_smp():
-    smp_2_4 = pd.read_csv('./data/2/4/smp_quotations.csv')
+    smp_2_4 = pd.read_csv('./data/2/4/smp_quotations_revised.csv')
 
     smp_2_4 = smp_2_4.sort_values(by='date')
 
@@ -34,14 +34,14 @@ def read_smp():
 
 def prepare_data():
     smp_model = load_smp_model(2, 4)
-    smp_predictions = pd.DataFrame(smp_model.predict(start=0, end=1620))
+    smp_predictions = pd.DataFrame(smp_model.predict(start=0, end=3000))
     smp_predictions['date'] = smp_predictions.index
     smp_predictions['year'] = smp_predictions.index.year
     smp_predictions['month'] = smp_predictions.index.month
     smp_predictions = smp_predictions.rename(columns={"predicted_mean": "estimated_price"})
 
     production_model = load_production_model(2, 4)
-    production_predictions = pd.DataFrame(production_model.predict(start=0, end=1620))
+    production_predictions = pd.DataFrame(production_model.predict(start=0, end=3000))
     production_predictions['year'] = production_predictions.index.year
     production_predictions['month'] = production_predictions.index.month
     production_predictions = production_predictions.rename(columns={"predicted_mean": "production_value"})
@@ -51,8 +51,8 @@ def prepare_data():
 
 def feature_engineering(smp_predictions, production_predictions):
     smp_data = read_smp()
-    smp = pd.merge(smp_predictions, smp_data, left_on=smp_predictions['date'], right_on=smp_data['date'], how='inner')
-    smp.set_index('date_x', inplace=True)
+    smp = pd.merge(smp_predictions, smp_data, left_on='date', right_on='date', how='inner')
+    # smp.set_index('date_x', inplace=True)
 
     smp = smp[['estimated_price', 'price', 'year', 'month']]
 
@@ -61,7 +61,7 @@ def feature_engineering(smp_predictions, production_predictions):
     return dataset
 
 def split(df):
-    train_size = int(len(df) * 0.9)  # 80% for training, adjust as needed
+    train_size = int(len(df) * 0.95)  # 80% for training, adjust as needed
     train, test = df[:train_size], df[train_size:]
 
     return train, test

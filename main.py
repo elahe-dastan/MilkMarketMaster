@@ -117,6 +117,45 @@ def predict(
     ] = "price",
 ):
     try:
+        production_model = load_model(country_id, product_id, "production_arima_model")
+        production_forecasts = pd.DataFrame(production_model.forecast(steps=steps)).rename(columns={"predicted_mean": "production_value"})
+        production_forecasts['year'] = production_forecasts.index.year
+        production_forecasts['month'] = production_forecasts.index.month
+        logger.info(production_forecasts)
+
+        smp_model = load_model(country_id, product_id, "smp_quotations_arima_model")
+        smp_forecasts = pd.DataFrame(smp_model.forecast(steps=steps)).rename(columns={"predicted_mean": "estimated_price"})
+        smp_forecasts['year'] = smp_forecasts.index.year
+        smp_forecasts['month'] = smp_forecasts.index.month
+        logger.info(smp_forecasts)
+
+        dataset = pd.merge(smp_forecasts, production_forecasts, left_on=['year', 'month'], right_on=['year', 'month'], how='inner')
+        logger.info(dataset)
+
+        rf_model = load_model(country_id, product_id, "rf_model")
+        predictions = rf_model.predict(dataset[['estimated_price', 'production_value']])
+        logger.info(dataset.index)
+        forecast_df = pd.DataFrame(predictions, columns=['predicted_mean']).set_index(smp_forecasts.index)
+        logger.info(forecast_df)
+        logger.info(forecast_df.columns)
+
+        inflation = load_inflation(country_id)
+        forecast_inflation_merged = merge_forecast_inflation(
+            forecast_df, inflation
+        )
+        forecast_inflation_merged.set_index("date", inplace=True)
+
+        forecast_inflation_merged["adjusted_price"] = forecast_inflation_merged[
+                                                          "predicted_mean"
+                                                      ] + (
+                                                              forecast_inflation_merged["predicted_mean"]
+                                                              * forecast_inflation_merged["rate"]
+                                                              / 100
+                                                      )
+
+        logger.info(forecast_inflation_merged)
+
+
         match param:
             case "production":
                 model = load_model(country_id, product_id, "production_arima_model")

@@ -15,11 +15,13 @@ def read():
     smp_2_4.set_index("date", inplace=True)
     smp_2_4 = smp_2_4.asfreq("7D", method="pad")
 
+    smp_2_4.to_csv("./data/2/4/smp_quotations_revised.csv")
+
     return smp_2_4
 
 
 def split(df):
-    train_size = int(len(df) * 0.9)  # 80% for training, adjust as needed
+    train_size = int(len(df) * 0.95)  # 80% for training, adjust as needed
     train, test = df[:train_size], df[train_size:]
 
     return train, test
