@@ -14,4 +14,4 @@ EXPOSE 8080
 
 WORKDIR /app/
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "5", "--backlog", "1024"]
+CMD ["python", "main.py", "serve"]
