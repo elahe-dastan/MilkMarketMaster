@@ -45,6 +45,14 @@ def smp():
     training.smp(2)
 
 
+@train.command()
+def production():
+    """
+    train an ARIMA model for predicting smp production value.
+    """
+    training.production(2)
+
+
 @main.command()
 @click.pass_context
 def serve(ctx):
