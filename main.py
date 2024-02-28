@@ -20,11 +20,13 @@ class Response(pydantic.BaseModel):
     sell_at: datetime.date
 
 
-def load_model(country_id, product_id, name):
+async def load_model(country_id, product_id, name):
     path = f"./data/{country_id}/{product_id}/{name}.joblib"
-    # Load the ARIMA model
-    # HANDLE EXCEPTION **********************
-    model = joblib.load(path)
+
+    try:
+        model = joblib.load(path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=503, detail="model is not available")
 
     return model
 
