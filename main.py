@@ -43,7 +43,7 @@ def load_inflation(country_id) -> pd.DataFrame:
     inflation["date"] = pd.to_datetime(inflation["date"])
     inflation.set_index("date", inplace=True)
 
-    selected_inflation = inflation[["date", "rate"]]
+    selected_inflation = inflation[["rate"]]
     assert isinstance(selected_inflation, pd.DataFrame)
 
     return selected_inflation
