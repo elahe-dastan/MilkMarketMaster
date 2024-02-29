@@ -46,6 +46,15 @@ def smp():
 
 
 @train.command()
+def rf():
+    """
+    train an Random Forest model for considering effects of different parameters
+    on the smp price.
+    """
+    training.rf(2)
+
+
+@train.command()
 def production():
     """
     train an ARIMA model for predicting smp production value.
