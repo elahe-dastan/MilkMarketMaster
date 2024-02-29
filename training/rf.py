@@ -91,7 +91,7 @@ def rf(
     read the csv data and model to train a random forest model
     for considering the effect of different parameters on smp price.
     this should be trained on the last step after having models for all the parameters.
-    using `do_evaludate` and `do_wite` you can control the write and the evaluation phases.
+    using `do_evaluate` and `do_write` you can control the write and the evaluation phases.
     """
     smp_predictions, production_predictions = prepare_data(country_id)
     dataset = feature_engineering(smp_predictions, production_predictions)

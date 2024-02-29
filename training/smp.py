@@ -69,7 +69,7 @@ def evaluate_model(model, test_df: pd.DataFrame):
 def smp(country_id: int, do_evaluate: bool = True, do_write: bool = True) -> ARIMA:
     """
     read the data csv and then train an ARIMA model
-    for the smp. using `do_evaludate` and `do_wite`
+    for the smp. using `do_evaluate` and `do_write`
     you can control the write and the evaluation phases.
     """
     data = read(country_id)
