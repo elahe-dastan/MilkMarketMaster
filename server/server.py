@@ -185,9 +185,9 @@ def predict(
                 forecast_inflation_merged.set_index("date", inplace=True)
 
                 forecast_inflation_merged["adjusted_price"] = forecast_inflation_merged[
-                    "predicted_mean"
+                    "estimated_price"
                 ] + (
-                    forecast_inflation_merged["predicted_mean"]
+                    forecast_inflation_merged["estimated_price"]
                     * forecast_inflation_merged["rate"]
                     / 100
                 )
