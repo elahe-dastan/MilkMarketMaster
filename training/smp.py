@@ -3,19 +3,12 @@ provide a training phase for the smp model which is
 the main model for predicting the smp price.
 """
 
-import logging
-
 import joblib
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 from statsmodels.tsa.arima.model import ARIMA
 
 from .common import split_train_test, train_arima_model
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("main")
 
 
 def read(country_id: int) -> pd.DataFrame:
