@@ -75,8 +75,8 @@ def maximize_profit(forecast_df):
     )
 
     response = Response(
-        buy_at=forecast_df.index[min_index_before_max].date(),
-        sell_at=forecast_df.index[max_index].date(),
+        buy_at=min_index_before_max,
+        sell_at=max_index,
         max_profit=max_profit,
     )
 
