@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def smp_quotations_separation():
-    smp_quotations = pd.read_csv('./data/smp_quotations.csv')
+    smp_quotations = pd.read_csv('../data/smp_quotations.csv')
 
     unique_combinations = smp_quotations[['country_id', 'product_id']].drop_duplicates()
 
@@ -23,7 +23,7 @@ def smp_quotations_separation():
 
 
 def consumption_separation():
-    consumption = pd.read_csv('./data/consumptions.csv')
+    consumption = pd.read_csv('../data/consumptions.csv')
 
     unique_combinations = consumption[['country_id', 'product_id']].drop_duplicates()
 
@@ -42,7 +42,7 @@ def consumption_separation():
 
 
 def production_separation():
-    production = pd.read_csv('./data/production.csv')
+    production = pd.read_csv('../data/production.csv')
 
     unique_combinations = production[['country_id', 'product_id']].drop_duplicates()
 
@@ -61,7 +61,7 @@ def production_separation():
 
 
 def inflation_separation():
-    inflation = pd.read_csv('./data/inflation_rates.csv')
+    inflation = pd.read_csv('../data/inflation_rates.csv')
 
     unique_countries = inflation['country_id'].unique()
 

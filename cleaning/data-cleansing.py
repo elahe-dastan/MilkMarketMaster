@@ -1,7 +1,7 @@
 import pandas as pd
 
 def equalisation():
-    smp_quotations = pd.read_csv('./data/smp_quotations.csv')
+    smp_quotations = pd.read_csv('../data/smp_quotations.csv')
 
     # Convert values from 'lb' to 'mt' where the unit is 'lb'
     smp_quotations.loc[smp_quotations['raw_unit'] == 'lb', 'raw_price'] = smp_quotations.loc[smp_quotations[
@@ -31,7 +31,7 @@ def IQR(df):
     return filtered_df[['date', 'data_interval', 'raw_currency', 'raw_unit', 'raw_price', 'currency', 'unit', 'price']]
 
 def clean_smp_quotations():
-    smp_2_4 = pd.read_csv('./data/2/4/smp_quotations.csv')
+    smp_2_4 = pd.read_csv('../data/2/4/smp_quotations.csv')
     IQR(smp_2_4)
 
 
