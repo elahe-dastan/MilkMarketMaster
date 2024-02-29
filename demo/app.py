@@ -56,7 +56,10 @@ def main():
             case "price":
                 df: pd.DataFrame = pd.DataFrame.from_dict(response)
                 df.index = pd.to_datetime(df.index)
-                st.line_chart(df, y=["adjusted_price", "predicted_mean"])
+                st.line_chart(
+                    df,
+                    y=["adjusted_price", "estimated_price", "rf_based_adjusted_price"],
+                )
             case "production":
                 sr: pd.Series = pd.Series(response)
                 sr.index = pd.to_datetime(sr.index)
