@@ -72,9 +72,12 @@ def serve(ctx):
         "server.server:app",
         host="0.0.0.0",
         port=8080,
-        reload=True if ctx.obj["DEBUG"] else False,
+        reload=ctx.obj["DEBUG"],
         workers=5,
         backlog=1024,
+        log_level="debug" if ctx.obj["DEBUG"] else "info",
+        use_colors=True,
+        access_log=ctx.obj["DEBUG"],
     )
 
 
