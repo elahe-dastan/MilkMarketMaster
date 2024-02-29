@@ -28,7 +28,7 @@ def read(country_id: int) -> pd.DataFrame:
     smp_df = smp_df.sort_values(by="date")
 
     smp_df["date"] = pd.to_datetime(smp_df["date"])
-    smp_df = smp_df.drop_duplicates(["date"])
+    # smp_df = smp_df.drop_duplicates(["date"])
     smp_df.set_index("date", inplace=True)
 
     # force date to have a 7 days frequency.
@@ -68,8 +68,6 @@ def evaluate_model(model, test_df: pd.DataFrame):
     forecasts["adjusted_price"] = merged_df["predicted_mean"] * (
         1 + (merged_df["rate"] / 100)
     )
-
-    merged_df = merged_df.drop(columns=["year"])
 
     forecasts_mse = mean_squared_error(test_df["price"], forecasts["adjusted_price"])
     print(f"Forecast Mean Squared Error: {forecasts_mse}")
